@@ -13,14 +13,14 @@ import {
 const NoteScreen = () => {
   const [notes, setNotes] = useState([
     {
-      id: 1,
+       id: `${Date.now()}-${Math.random()}`,
       title: "First Note",
       content: "This is the content of the first note.",
       createdAt: new Date().toISOString(),
     },
 
     {
-      id: 2,
+      id: `${Date.now()}-${Math.random()}`,
       title: "Second Note",
       content: "This is the content of the second note.",
       createdAt: new Date().toISOString(),
@@ -30,13 +30,26 @@ const NoteScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [newNote, setNewNote] = useState({ title: "", content: "" });
   const addNote = () => {
+    if (newNote.title.trim() && newNote.content === "") return;
 
-  }
+    setNotes((prevNotes) => [
+      ...prevNotes,
+      {
+        id: `${Date.now()}-${Math.random()}`,
+        title: newNote.title,
+        content: newNote.content,
+        createdAt: new Date().toLocaleString(),
+      },
+    ]);
+
+    setNewNote({ title: "", content: "" });
+    setModalVisible(false)
+  };
   return (
     <View style={styles.container}>
       <FlatList
         data={notes}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.noteItem}>
             <Text style={styles.noteTitle}>{item.title}</Text>
@@ -69,15 +82,15 @@ const NoteScreen = () => {
               placeholder="Note Title"
               value={newNote.title}
               placeholderTextColor="#aaa"
-                onChangeText={(text) => setNewNote({ ...newNote, title: text })}
+              onChangeText={(text) => setNewNote({ ...newNote, title: text })}
             />
             <TextInput
               style={styles.noteInputs}
               placeholder="Note Content"
               multiline
-              value={newNote.title}
+              value={newNote.content}
               placeholderTextColor="#aaa"
-              onChangeText={(text)=>setNewNote({...newNote, content: text })}
+              onChangeText={(text) => setNewNote({ ...newNote, content: text })}
             />
 
             <View style={styles.buttonWrapper}>
@@ -89,10 +102,7 @@ const NoteScreen = () => {
               >
                 <Text style={styles.buttonText}> Close </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={addNote}
-              >
+              <TouchableOpacity style={styles.saveButton} onPress={addNote}>
                 <Text style={styles.buttonText}> Save </Text>
               </TouchableOpacity>
             </View>
