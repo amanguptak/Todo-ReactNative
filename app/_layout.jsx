@@ -12,14 +12,15 @@ export default function RootLayout() {
           fontFamily: "Ubuntu",
         },
         contentStyle: {
-          backgroundColor: "#fff",  
+          backgroundColor: "#fff",
         },
         animation: "fade_from_bottom",
         animationDuration: 300,
       }}
     >
       <Stack.Screen name="index" options={{ title: "Home" }} />
-         <Stack.Screen name="notes" options={{ headerTitle: "Notes" }} />
+      <Stack.Screen name="notes" options={{ headerTitle: "Notes" }} />
+      
     </Stack>
   );
 }

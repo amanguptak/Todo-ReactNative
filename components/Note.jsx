@@ -1,9 +1,15 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 const Note = ({ item, deleteNote, updatedNotes }) => {
+    const router = useRouter();
   return (
     <View style={styles.noteItem}>
-      <Text style={styles.noteTitle}>{item.title}</Text>
+      <TouchableOpacity
+        onPress={() => router.push(`/note-details/${item.id}`)}
+    >
+      <Text>{item.title}</Text>
+    </TouchableOpacity>
       <Text style={styles.content}>{item.content}</Text>
       <Text style={styles.createdAt}>created:{item.createdAt}</Text>
       {item?.updatedTime && (
