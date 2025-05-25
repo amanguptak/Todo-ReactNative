@@ -1,49 +1,95 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   FlatList,
-  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  TextInput,
 } from "react-native";
+import Note from "../../components/Note";
+import NoteModal from "../../components/NoteModal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const NOTES_KEY = "NOTES_STORAGE_KEY";
 
 const NoteScreen = () => {
-  const [notes, setNotes] = useState([
-    {
-       id: `${Date.now()}-${Math.random()}`,
-      title: "First Note",
-      content: "This is the content of the first note.",
-      createdAt: new Date().toISOString(),
-    },
-
-    {
-      id: `${Date.now()}-${Math.random()}`,
-      title: "Second Note",
-      content: "This is the content of the second note.",
-      createdAt: new Date().toISOString(),
-    },
-  ]);
-
+  const [notes, setNotes] = useState([]);
+  const [editNote, setEditNote] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [newNote, setNewNote] = useState({ title: "", content: "" });
+
+  useEffect(() => {
+    const loadNotes = async () => {
+      try {
+        const data = await AsyncStorage.getItem(NOTES_KEY);
+        if (data) {
+          setNotes(JSON.parse(data));
+        }
+      } catch (err) {
+        console.error("Failed to load notes:", err);
+      }
+    };
+
+    loadNotes();
+  }, []);
+  useEffect(() => {
+    const savedNotes = async () => {
+      try {
+        await AsyncStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    savedNotes();
+  }, [notes]);
+
   const addNote = () => {
-    if (newNote.title.trim() && newNote.content === "") return;
+    if (!newNote.title.trim() && !newNote.content.trim()) return;
 
-    setNotes((prevNotes) => [
-      ...prevNotes,
-      {
-        id: `${Date.now()}-${Math.random()}`,
-        title: newNote.title,
-        content: newNote.content,
-        createdAt: new Date().toLocaleString(),
-      },
-    ]);
+    if (editNote) {
+      const updatedNotes = notes.map((findNote) =>
+        findNote.id === editNote
+          ? {
+              ...findNote,
+              title: newNote.title,
+              content: newNote.content,
+              updatedTime: new Date().toLocaleString(),
+            }
+          : findNote
+      );
 
-    setNewNote({ title: "", content: "" });
-    setModalVisible(false)
+      setNotes(updatedNotes);
+      setEditNote(null);
+      setNewNote({ title: "", content: "" });
+    } else {
+      setNotes((prevNotes) => [
+        ...prevNotes,
+        {
+          id: `${Date.now()}-${Math.random()}`,
+          title: newNote.title,
+          content: newNote.content,
+          createdAt: new Date().toLocaleString(),
+        },
+      ]);
+
+      setNewNote({ title: "", content: "" });
+    }
+
+    setModalVisible(false);
+  };
+
+  const deleteNote = (id) => {
+    const updatedNotes = notes.filter((note) => note.id !== id);
+    setNotes(updatedNotes);
+  };
+
+  const updatedNotes = (id) => {
+    const foundNote = notes.find((note) => note.id === id);
+    if (!foundNote) return;
+    setNewNote({ title: foundNote.title, content: foundNote.content });
+    setEditNote(id);
+    setModalVisible(true);
   };
   return (
     <View style={styles.container}>
@@ -51,11 +97,11 @@ const NoteScreen = () => {
         data={notes}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.noteItem}>
-            <Text style={styles.noteTitle}>{item.title}</Text>
-            <Text style={styles.content}>{item.content}</Text>
-            <Text style={styles.createdAt}>{item.createdAt}</Text>
-          </View>
+          <Note
+            item={item}
+            deleteNote={deleteNote}
+            updatedNotes={updatedNotes}
+          />
         )}
       />
       <TouchableOpacity
@@ -66,49 +112,13 @@ const NoteScreen = () => {
       >
         <Text style={styles.mainTitle}> + </Text>
       </TouchableOpacity>
-
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add New Note</Text>
-
-            <TextInput
-              style={styles.noteInputs}
-              placeholder="Note Title"
-              value={newNote.title}
-              placeholderTextColor="#aaa"
-              onChangeText={(text) => setNewNote({ ...newNote, title: text })}
-            />
-            <TextInput
-              style={styles.noteInputs}
-              placeholder="Note Content"
-              multiline
-              value={newNote.content}
-              placeholderTextColor="#aaa"
-              onChangeText={(text) => setNewNote({ ...newNote, content: text })}
-            />
-
-            <View style={styles.buttonWrapper}>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => {
-                  setModalVisible(false);
-                }}
-              >
-                <Text style={styles.buttonText}> Close </Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.saveButton} onPress={addNote}>
-                <Text style={styles.buttonText}> Save </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <NoteModal
+        setNewNote={setNewNote}
+        newNote={newNote}
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        addNote={addNote}
+      />
     </View>
   );
 };
@@ -126,24 +136,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: "#333",
   },
-  noteItem: {
-    padding: 20,
-    marginVertical: 10,
-    marginHorizontal: 16,
-    backgroundColor: "#fce0d5",
-    borderRadius: 10,
-  },
 
-  noteTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#000",
-  },
-  content: {
-    fontSize: 14,
-    color: "#666",
-    marginVertical: 5,
-  },
   addButton: {
     position: "absolute",
     bottom: 20,
@@ -153,62 +146,5 @@ const styles = StyleSheet.create({
     borderRadius: "100%",
     alignItems: "center",
     justifyContent: "center",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    width: "80%",
-    backgroundColor: "#fce0d5",
-    borderRadius: 10,
-    padding: 20,
-    alignItems: "center",
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  buttonWrapper: {
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "end",
-
-    width: "100%",
-    marginTop: 20,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  saveButton: {
-    marginLeft: 10,
-    backgroundColor: "#4CAF50",
-    padding: 5,
-    color: "#fce0d5",
-    borderRadius: 5,
-    fontSize: 20,
-  },
-
-  closeButton: {
-    borderRadius: 5,
-    backgroundColor: "red",
-    padding: 5,
-    color: "#fff",
-  },
-  noteInputs: {
-    width: "100%",
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    marginBottom: 10,
-    color: "#333",
-    fontSize: 16,
   },
 });

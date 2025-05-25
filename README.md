@@ -269,3 +269,184 @@ Yes ✅ This rule is the **same in all React environments**:
 ---
 
 
+
+Absolutely! Let’s expand your **React Native Mistakes & Learnings Notes** with all key concepts we've discussed so far, including **state lifting**, prop passing, and editing logic.
+
+---
+
+## 🧠 React Native Learning Log — Mistakes & Learnings
+
+### ✅ 1. **FlatList vs ScrollView vs View**
+
+* `View`: Not scrollable. You cannot use `overflow: scroll` like in web.
+* `ScrollView`: Scrolls all content, but **renders everything at once** — not ideal for large lists.
+* `FlatList`: Scrollable and **virtualized**. Only renders visible items, great for performance.
+
+### ✅ 2. **FlatList doesn't need ScrollView**
+
+* `FlatList` already supports vertical scrolling.
+* Wrapping it in `ScrollView` can cause performance issues and warning errors.
+
+---
+
+### ✅ 3. **deleteNote didn't work because of missing argument**
+
+* You must **pass `item.id`** to the function:
+
+  ```tsx
+  onPress={() => deleteNote(item.id)} // ✅
+  ```
+
+  Instead of:
+
+  ```tsx
+  onPress={deleteNote} // ❌ This gives no ID
+  ```
+
+---
+
+### ✅ 4. **Using `...note` while updating**
+
+* `...note` keeps all other fields like `id`, `createdAt`, etc. intact:
+
+  ```tsx
+  { ...note, title: newTitle, content: newContent }
+  ```
+
+* If you omit `...note`, you'll **lose important fields**:
+
+  ```tsx
+  { title: newTitle } // ❌ will lose id, timestamps, etc.
+  ```
+
+---
+
+### ✅ 5. **Clear `editId` after updating**
+
+* Always reset:
+
+  ```ts
+  setEditId(null);
+  ```
+* This prevents the modal from staying in edit mode when adding new notes.
+
+---
+
+### ✅ 6. **State Lifting**
+
+* ✅ When a child (`NoteModal`) needs to update state in the parent (`NoteScreen`), the parent should:
+
+  * Keep the state: `const [newNote, setNewNote] = useState(...)`
+  * Pass both state and setter:
+
+    ```tsx
+    <NoteModal
+      newNote={newNote}
+      setNewNote={setNewNote}
+    />
+    ```
+* The child can now update parent's state:
+
+  ```tsx
+  onChangeText={(text) => setNewNote({ ...newNote, title: text })}
+  ```
+
+---
+
+### ✅ 7. **SafeAreaView vs View**
+
+* `SafeAreaView` protects content from being hidden under notches, status bars, etc.
+* Should be used at the top level of your screen layout.
+
+---
+Absolutely! Let’s expand your **React Native Mistakes & Learnings Notes** with all key concepts we've discussed so far, including **state lifting**, prop passing, and editing logic.
+
+---
+
+## 🧠 React Native Learning Log — Mistakes & Learnings
+
+### ✅ 1. **FlatList vs ScrollView vs View**
+
+* `View`: Not scrollable. You cannot use `overflow: scroll` like in web.
+* `ScrollView`: Scrolls all content, but **renders everything at once** — not ideal for large lists.
+* `FlatList`: Scrollable and **virtualized**. Only renders visible items, great for performance.
+
+### ✅ 2. **FlatList doesn't need ScrollView**
+
+* `FlatList` already supports vertical scrolling.
+* Wrapping it in `ScrollView` can cause performance issues and warning errors.
+
+---
+
+### ✅ 3. **deleteNote didn't work because of missing argument**
+
+* You must **pass `item.id`** to the function:
+
+  ```tsx
+  onPress={() => deleteNote(item.id)} // ✅
+  ```
+
+  Instead of:
+
+  ```tsx
+  onPress={deleteNote} // ❌ This gives no ID
+  ```
+
+---
+
+### ✅ 4. **Using `...note` while updating**
+
+* `...note` keeps all other fields like `id`, `createdAt`, etc. intact:
+
+  ```tsx
+  { ...note, title: newTitle, content: newContent }
+  ```
+
+* If you omit `...note`, you'll **lose important fields**:
+
+  ```tsx
+  { title: newTitle } // ❌ will lose id, timestamps, etc.
+  ```
+
+---
+
+### ✅ 5. **Clear `editId` after updating**
+
+* Always reset:
+
+  ```ts
+  setEditId(null);
+  ```
+* This prevents the modal from staying in edit mode when adding new notes.
+
+---
+
+### ✅ 6. **State Lifting**
+
+* ✅ When a child (`NoteModal`) needs to update state in the parent (`NoteScreen`), the parent should:
+
+  * Keep the state: `const [newNote, setNewNote] = useState(...)`
+  * Pass both state and setter:
+
+    ```tsx
+    <NoteModal
+      newNote={newNote}
+      setNewNote={setNewNote}
+    />
+    ```
+* The child can now update parent's state:
+
+  ```tsx
+  onChangeText={(text) => setNewNote({ ...newNote, title: text })}
+  ```
+
+---
+
+### ✅ 7. **SafeAreaView vs View**
+
+* `SafeAreaView` protects content from being hidden under notches, status bars, etc.
+* Should be used at the top level of your screen layout.
+
+---
+
+
